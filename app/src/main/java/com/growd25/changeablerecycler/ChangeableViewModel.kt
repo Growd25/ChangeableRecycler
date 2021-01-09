@@ -6,38 +6,41 @@ import androidx.lifecycle.ViewModel
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
+import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.collections.ArrayList
 
 class ChangeableViewModel : ViewModel() {
     private val disposable: Disposable
+    private val random: Random = Random()
     private val deletedItems: MutableList<Item> = mutableListOf()
     private val currentList: MutableList<Item>
-    private var item: Item
-    private val _items: MutableLiveData<MutableList<Item>> = MutableLiveData()
-    val items: LiveData<MutableList<Item>> = _items
+    private var lastIndex: Int
+    private val _items: MutableLiveData<List<Item>> = MutableLiveData()
+    val items: LiveData<List<Item>> = _items
 
     init {
-        currentList = List(15) { index -> Item(index, index) }.toMutableList()
-        item = currentList.last()
+        currentList = MutableList(INITIAL_LIST_SIZE) { index -> Item(index) }
+        lastIndex = currentList.last().itemId
         _items.value = ArrayList(currentList)
         disposable = Observable
-            .interval(5, TimeUnit.SECONDS)
+            .interval(INTERVAL_PERIOD, TimeUnit.SECONDS)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(::addItem)
     }
 
     private fun addItem(number: Long) {
         if (deletedItems.isEmpty()) {
-            val newItem = item.copy(itemId = item.itemId + 1, itemNumber = item.itemNumber + 1)
-            currentList.add(newItem)
-            this.item = newItem
-            _items.value = ArrayList(currentList)
+            val position = random.nextInt(currentList.size)
+            lastIndex++
+            val newItem = Item(lastIndex)
+            currentList.add(position, newItem)
         } else {
             val lastItem = deletedItems.last()
             currentList.add(lastItem)
-            deletedItems.remove(lastItem)
-            _items.value = ArrayList(currentList)
+            deletedItems.removeLast()
         }
+        _items.value = ArrayList(currentList)
     }
 
     fun onItemClicked(item: Item) {
@@ -48,5 +51,10 @@ class ChangeableViewModel : ViewModel() {
 
     override fun onCleared() {
         disposable.dispose()
+    }
+
+    companion object {
+        private const val INITIAL_LIST_SIZE = 15
+        private const val INTERVAL_PERIOD = 5L
     }
 }

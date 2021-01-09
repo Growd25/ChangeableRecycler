@@ -21,15 +21,10 @@ class ChangeableAdapter(private val deleteImageViewListener: (Item) -> Unit) :
         holder.bind(currentList[position])
     }
 
-    override fun getItemCount(): Int {
-        return currentList.size
-    }
-
     class ChangeableViewHolder(
         private val changeableItemBinding: ChangeableItemBinding,
         deleteImageViewListener: (Item) -> Unit
-    ) :
-        RecyclerView.ViewHolder(changeableItemBinding.root) {
+    ) : RecyclerView.ViewHolder(changeableItemBinding.root) {
         private lateinit var item: Item
 
         init {
@@ -38,7 +33,7 @@ class ChangeableAdapter(private val deleteImageViewListener: (Item) -> Unit) :
 
         fun bind(item: Item) {
             this.item = item
-            changeableItemBinding.numberTextView.text = item.itemNumber.toString()
+            changeableItemBinding.numberTextView.text = item.itemId.toString()
         }
     }
 
